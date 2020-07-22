@@ -1,0 +1,8 @@
+# exercise-specific metadata
+/*/*/.exercism
+/*/*/README.md
+/*/*/test_*
+/*/*/*-test.*
+
+# R files
+.Rhistory
