@@ -11,8 +11,8 @@ Take a number between 1 and 64, inclusive, and return the number
 of grains of rice on the NUM-th square of the chessboard
 according to the fable where the squire asks for one grain of
 rice on the first chess square, and for each remaining chess
-square asks for double the number of grains as for the previous
-square."
+square asks for double the number of grains on the square as for
+the previous square."
   (unless
       (and
        (numberp num)
@@ -23,7 +23,13 @@ square."
 
 
 (defun total ()
-  (1- (square 65.0)))
+  "Find the sum total grains of rice for all the board squares.
+Return the total number of grains of rice on the chessboard
+according to the fable where the squire asks for one grain of
+rice on the first chess square, and for each remaining chess
+square asks for double the number of grains on the square as for
+the previous square."
+  (1- (* 2.0 (square 64.0))))
 
 
 (provide 'grains)
