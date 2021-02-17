@@ -4,5 +4,11 @@
 /*/*/test_*
 /*/*/*-test.*
 
-# R files
-.Rhistory
+/Haskell/*/.exercism
+/Haskell/*/.stack-work
+/Haskell/*/README.md
+/Haskell/*/package.yaml
+/Haskell/*/stack.yaml
+/Haskell/*/stack.yaml.lock
+/Haskell/*/*.cabal
+/Haskell/*/test
