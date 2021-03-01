@@ -5,70 +5,30 @@ import           Data.Char
 import qualified Data.Text as T
 import           Data.Text (Text)
 
-
--- convert a phrase to its acronym
+-- Construct an acronym from the input Text. The acronym letters are defined as
+-- being the first letter of every word (including words separated by hyphens),
+-- and any capitalized letters mid-word (with the exception of words that are
+-- entirely capitalized).
 abbreviate :: Text -> Text
-abbreviate xs =
-  let wordList = T.split checkWordDelim xs
-      acronymList = map calcWordAcronym wordList
-  in T.concat acronymList
+abbreviate str =
+  -- map all word delimiter characters to ' ', split the Text into a list of
+  -- words, remove punctuation, find the per-word acronym letters, and then
+  -- recombine
+  let delims = T.pack "-"
+      str_delims = T.map (transform_delims delims) str
+      words_orig = T.words str_delims
+      words_onlyletters = map extract_letters words_orig
+      words_nonempty = filter (not . T.null) words_onlyletters
+      words_acro = map find_word_acro words_nonempty
+      acro_comb = foldl T.append T.empty words_acro
+  in T.toUpper acro_comb
+  where extract_letters = T.filter Data.Char.isAlpha
+        transform_delims delims c = if T.any (== c) delims then ' ' else c
 
-
--- define the set of characters that we consider to be word delimiters
-checkWordDelim :: Char -> Bool
-checkWordDelim '\'' = False
-checkWordDelim w = not (isAlpha w)
-
-
--- constructs the acronym for a given string.  The first letter of the string is
--- always included as well as any letters that are the first capital letter
--- after one or more lowercase letters.
-calcWordAcronym :: Text -> Text
-calcWordAcronym word =
-  let firstLetterUpper = firstLetterToUpper word
-      startAcro = WordAcronym { wasPrevCharLower = True, acronym = "" }
-      endAcro = T.foldl addToWordAcronym startAcro firstLetterUpper
-  in acronym endAcro
-
-
--- ensure that the first alphabetic character is uppercase
-firstLetterToUpper :: Text -> Text
-firstLetterToUpper "" = ""
-firstLetterToUpper x
-  | isAlpha (T.head x) = T.cons (toUpper (T.head x)) (T.tail x)
-  | otherwise          = T.cons (T.head x) (firstLetterToUpper (T.tail x))
-
-
--- data structure used to record the state of an acronym construction
-data WordAcronym = WordAcronym { wasPrevCharLower :: Bool
-                               , acronym :: Text
-                               } deriving (Eq, Show)
-
-
--- conditionally postpends `a` to `acronym acro` if `a` is a capital letter and
--- the previous letter was a lowercase letter
-addToWordAcronym :: WordAcronym -> Char -> WordAcronym
-addToWordAcronym acro a
-
-  -- case: not an alphabetic character so just keep the current status
-  | not $ isAlpha a = acro
-
-  -- case: current character is lowercase so no need to add to acronym
-  | isLower a = WordAcronym {
-      wasPrevCharLower = True
-      , acronym = acronym acro
-      }
-
-  -- case: previous character was lowercase and current character is uppercase,
-  -- so add letter to acronym
-  | wasPrevCharLower acro = WordAcronym {
-      wasPrevCharLower = False
-      , acronym = T.snoc (acronym acro) a
-      }
-
-  -- case: previous character was uppercase and current character is uppercase,
-  -- so no need to add letter to acronym
-  | otherwise = WordAcronym {
-      wasPrevCharLower = False
-      , acronym = acronym acro
-      }
+-- Find a word's acronym letters.
+find_word_acro :: Text -> Text
+find_word_acro str
+  | check_mixed_case str = T.cons (T.head str) (T.filter Data.Char.isUpper (T.tail str))
+  | otherwise            = T.take 1 str
+  where check_mixed_case str' =
+          (T.any Data.Char.isLower str') && (T.any Data.Char.isUpper str')
