@@ -12,3 +12,5 @@
 /Haskell/*/stack.yaml.lock
 /Haskell/*/*.cabal
 /Haskell/*/test
+
+/ocaml/**/_build
