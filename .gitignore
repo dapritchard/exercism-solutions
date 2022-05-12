@@ -6,12 +6,8 @@
 
 /haskell/*/.exercism
 /haskell/*/.stack-work
-/haskell/*/README.md
-/haskell/*/package.yaml
-/haskell/*/stack.yaml
 /haskell/*/stack.yaml.lock
 /haskell/*/*.cabal
-/haskell/*/test
 
 /ocaml/**/_build
 
