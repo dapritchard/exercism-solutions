@@ -12,5 +12,7 @@
 /ocaml/**/_build
 
 /clojure/*/.lein*
-/clojure/*/target
+/clojure/*/.nrepl*
 /clojure/*/HELP.md
+/clojure/*/HINTS.md
+/clojure/*/target
