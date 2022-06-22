@@ -48,31 +48,27 @@
    8 "eight"
    9 "nine"})
 
-(defn split-digits [num]
-  "Covert an integer like 1234 into '(1 2 3 4)"
+(defn split-digits [num val]
+  "Covert an integer like 1234 into '(1 2 3 4) when splitting by 10s"
   (defn split-digits-impl [num' acc]
     (if (= num' 0)
       acc
-      (split-digits-impl (quot num' 10)
-                         (cons (rem num' 10) acc))))
+      (split-digits-impl (quot num' val)
+                         (cons (rem num' val) acc))))
   (split-digits-impl num ()))
 
-(defn split-thousands [num]
+(defn split-hundreds [num]
   "Convert an integer like 1234 into '((0 0 1) (2 3 4))"
-  (defn split-thousands-impl [num' acc]
-    (if (= num' 0)
-      acc
-      (split-thousands-impl (quot num' 1000)
-                            (cons (split-digits (rem num' 1000))
-                                  acc))))
-  (let [digits (split-thousands-impl num ())
-        high-digits (first digits)
-        len-high-digits (count high-digits)]
-    (cond
-      (= len-high-digits 3) digits
-      (= len-high-digits 2) (cons (cons 0 high-digits) (rest digits))
-      (= len-high-digits 1) (cons (list* 0 0 high-digits) (rest digits))
-      (= len-high-digits 0) '((0 0 0)))))
+  (defn ensure-3-digits [digits]
+    (let [n-digits (count digits)]
+      (cond
+        (= n-digits 3) digits
+        (= n-digits 2) (cons 0 digits)
+        (= n-digits 1) (list* 0 0 digits)
+        (= n-digits 0) '(0 0 0))))
+  (let [hunds-vals (split-digits num 1000)
+        hunds-lists (map #(split-digits % 10) hunds-vals)]
+    (map ensure-3-digits hunds-lists)))
 
 (defn create-hunds-str [d3 d2 d1]
   "Convert inputs like 1, 1, and 9 into \"one hundred nineteen\""
@@ -90,19 +86,26 @@
       true (str hunds " " tens))))
 
 (defn number-impl [num]
-  ;; Convert inputs like
-  ;;    '((0 0 1) (2 3 4)) and '("thousand")
-  ;; into
-  ;;    ("one thousand" "two hundred thirty-four")
-  (defn stringify-segs [num-list' scale-words']
-    (if (empty? scale-words')
-      (map #(apply create-hunds-str %) num-list')
-      (cons (str (apply create-hunds-str (first num-list'))
-                 " "
-                 (first scale-words'))
-            (stringify-segs (rest num-list') (rest scale-words')))))
-  ;; Lookup table for the scale words corresponding to the number of "thousands
-  ;; segments"
+  (defn create-segm [scale-word digits]
+    (str scale-word
+         " "
+         (apply create-hunds-str digits)))
+  ;; ;; Convert inputs like
+  ;; ;;    '((0 0 1) (2 3 4)) and '("thousand")
+  ;; ;; into
+  ;; ;;    ("one thousand" "two hundred thirty-four")
+  ;; (defn stringify-segs [num-list' scale-words']
+  ;;   (cond
+
+  ;;     (empty? scale-words') (map #(apply create-hunds-str %) num-list')
+  ;;     (= '(0 0 0) num-list') (stringify-segs (rest num-list')
+  ;;                                            (rest scale-words'))
+  ;;     true (cons (str (apply create-hunds-str (first num-list'))
+  ;;                     " "
+  ;;                     (first scale-words'))
+  ;;                (stringify-segs (rest num-list') (rest scale-words')))))
+  ;; ;; Lookup table for the scale words corresponding to the number of "thousands
+  ;; ;; segments"
   (defn create-scale-words [n]
     (cond
       (= n 4) '("billion" "million" "thousand")
@@ -110,12 +113,23 @@
       (= n 2) '("thousand")
       (= n 1) ()))
   ;; Stringify each segment and then combine
-  (let [num-list (split-thousands num)
-        scale-words (create-scale-words (count num-list))]
-    (clojure.string/join " " (stringify-segs num-list scale-words))))
+  (let [num-list (split-hundreds num)
+        scale-words (create-scale-words (count num-list))
+        first-str (apply create-hunds-str (first num-list))
+        segm-pairs (map list scale-words (rest num-list))
+        segm-pairs-nonzero (filter #(not= (second %) '(0 0 0)) segm-pairs)]
+    ;; (clojure.string/join " " (stringify-segs num-list scale-words))
+    ;; (clojure.string/join
+    ;;  " "
+    ;;  (cons (apply create-hunds-str (first num-list'))
+    ;;        (stringify-segs num-list scale-words)))
+    (clojure.string/join
+     " "
+     (cons first-str
+           (map #(apply create-segm %) segm-pairs-nonzero)))))
 
 (defn number [num]
-  (if (and (integer? num) (<= 0 num) (<= num 1000000000000))
+  (if (and (integer? num) (<= 0 num) (< num 1000000000000))
     (if (= num 0)
       "zero"
       (number-impl num))
