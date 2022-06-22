@@ -71,49 +71,53 @@
     (cond
       (= len-high-digits 3) digits
       (= len-high-digits 2) (cons (cons 0 high-digits) (rest digits))
-      (= len-high-digits 1) (cons (concat '(0 0) high-digits) (rest digits))
-      (= len-high-digits 0) '(0 0 0))))
+      (= len-high-digits 1) (cons (list* 0 0 high-digits) (rest digits))
+      (= len-high-digits 0) '((0 0 0)))))
 
-(defn create-hundreds-str [d3 d2 d1]
+(defn create-hunds-str [d3 d2 d1]
+  "Convert inputs like 1, 1, and 9 into \"one hundred nineteen\""
   (defn create-tens-str [d2 d1]
     (cond
       (= d2 0) (ones-str d1)
       (= d2 1) (ten-to-nineteen (+ 10 d1))
+      (= d1 0) (tens-str d2)
       true (str (tens-str d2) "-" (ones-str d1))))
-  (let [tens (create-tens-str d2 d1)]
-    (if (= d3 0)
-      tens
-      (str (hunds-str d3) " " tens))))
-
-(defn number [num]
-  (if (and (integer? (<= 0 num) (<= num 1000000000000)))
-    (if (= num 0)
-      "zero"
-      ;; (number-impl num)
-      1
-      )
-    (throw (Exception. "The input must be an integer no less than 0 and less than 1000000000000")))
-)
+  (let [hunds (hunds-str d3)
+        tens (create-tens-str d2 d1)]
+    (cond
+      (= d3 0) tens
+      (and (= d2 0) (= d1 0)) hunds
+      true (str hunds " " tens))))
 
 (defn number-impl [num]
-  (defn f [num-list' scale-words']
+  ;; Convert inputs like
+  ;;    '((0 0 1) (2 3 4)) and '("thousand")
+  ;; into
+  ;;    ("one thousand" "two hundred thirty-four")
+  (defn stringify-segs [num-list' scale-words']
     (if (empty? scale-words')
-      num-list'
-      (list* (first num-list')
-             (first scale-words')
-             (f (rest num-list') (rest scale-words')))))
+      (map #(apply create-hunds-str %) num-list')
+      (cons (str (apply create-hunds-str (first num-list'))
+                 " "
+                 (first scale-words'))
+            (stringify-segs (rest num-list') (rest scale-words')))))
+  ;; Lookup table for the scale words corresponding to the number of "thousands
+  ;; segments"
   (defn create-scale-words [n]
     (cond
       (= n 4) '("billion" "million" "thousand")
       (= n 3) '("million" "thousand")
       (= n 2) '("thousand")
       (= n 1) ()))
+  ;; Stringify each segment and then combine
   (let [num-list (split-thousands num)
         scale-words (create-scale-words (count num-list))]
-    (f num-list scale-words)))
+    (clojure.string/join " " (stringify-segs num-list scale-words))))
 
-;; (defn split-hund [num acc]
-;;   (if (= num 0)
-;;     acc
-;;     (split-hund (quot num 1000)
-;;                   (cons (rem num 1000) acc))))
+(defn number [num]
+  (if (and (integer? num) (<= 0 num) (<= num 1000000000000))
+    (if (= num 0)
+      "zero"
+      (number-impl num))
+    (throw (IllegalArgumentException.
+            "The input must be an integer no less than 0 and less than 1000000000000"))))
