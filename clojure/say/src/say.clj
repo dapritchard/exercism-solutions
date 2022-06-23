@@ -86,26 +86,10 @@
       true (str hunds " " tens))))
 
 (defn number-impl [num]
-  (defn create-segm [scale-word digits]
-    (str scale-word
+  (defn create-segm [digits scale-word]
+    (str (apply create-hunds-str digits)
          " "
-         (apply create-hunds-str digits)))
-  ;; ;; Convert inputs like
-  ;; ;;    '((0 0 1) (2 3 4)) and '("thousand")
-  ;; ;; into
-  ;; ;;    ("one thousand" "two hundred thirty-four")
-  ;; (defn stringify-segs [num-list' scale-words']
-  ;;   (cond
-
-  ;;     (empty? scale-words') (map #(apply create-hunds-str %) num-list')
-  ;;     (= '(0 0 0) num-list') (stringify-segs (rest num-list')
-  ;;                                            (rest scale-words'))
-  ;;     true (cons (str (apply create-hunds-str (first num-list'))
-  ;;                     " "
-  ;;                     (first scale-words'))
-  ;;                (stringify-segs (rest num-list') (rest scale-words')))))
-  ;; ;; Lookup table for the scale words corresponding to the number of "thousands
-  ;; ;; segments"
+         scale-word))
   (defn create-scale-words [n]
     (cond
       (= n 4) '("billion" "million" "thousand")
@@ -115,18 +99,15 @@
   ;; Stringify each segment and then combine
   (let [num-list (split-hundreds num)
         scale-words (create-scale-words (count num-list))
-        first-str (apply create-hunds-str (first num-list))
-        segm-pairs (map list scale-words (rest num-list))
-        segm-pairs-nonzero (filter #(not= (second %) '(0 0 0)) segm-pairs)]
-    ;; (clojure.string/join " " (stringify-segs num-list scale-words))
-    ;; (clojure.string/join
-    ;;  " "
-    ;;  (cons (apply create-hunds-str (first num-list'))
-    ;;        (stringify-segs num-list scale-words)))
+        last-num-list (last num-list)
+        last-str (when (not= last-num-list '(0 0 0))
+                   (list (apply create-hunds-str last-num-list)))
+        segm-pairs (map list (butlast num-list) scale-words)
+        segm-pairs-nonzero (filter #(not= (first %) '(0 0 0)) segm-pairs)]
     (clojure.string/join
      " "
-     (cons first-str
-           (map #(apply create-segm %) segm-pairs-nonzero)))))
+     (concat (map #(apply create-segm %) segm-pairs-nonzero)
+             last-str))))
 
 (defn number [num]
   (if (and (integer? num) (<= 0 num) (< num 1000000000000))
