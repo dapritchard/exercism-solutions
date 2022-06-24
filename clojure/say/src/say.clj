@@ -86,10 +86,14 @@
       true (str hunds " " tens))))
 
 (defn number-impl [num]
+  "Workhorse function for `number` without any argument checking"
+  ;; Takes inputs like '(1 2 3) and "thousand" and returns "one hundred and
+  ;; twenty-three thousand"
   (defn create-segm [digits scale-word]
     (str (apply create-hunds-str digits)
          " "
          scale-word))
+  ;; Return a list of scale words depending on `n`, the number of digits triples
   (defn create-scale-words [n]
     (cond
       (= n 4) '("billion" "million" "thousand")
@@ -110,6 +114,7 @@
              last-str))))
 
 (defn number [num]
+  "Convert an integer into a written word string"
   (if (and (integer? num) (<= 0 num) (< num 1000000000000))
     (if (= num 0)
       "zero"
