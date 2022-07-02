@@ -19,11 +19,12 @@
       (list s1 s2 s3))
     (throw (IllegalArgumentException. (str msg "'" s "'")))))
 
-(defn split-expr
+(defn split-exprs
   ;; Split `s` on the last digit and call the 2-arg variant
   ([s]
-   (let [[v1 v2 v3] #"^(.*) (-?\d+)()$" "$1" "$2" "" "No trailing number: "]
-     (split-expr v1 v2)))
+   (let [m #"^(.*) (-?\d+)()$"
+         [v1 v2 v3] (split-contents s m "$1" "$2" "" "No trailing number: ")]
+     (split-exprs v1 (list v2))))
   ;; Peel off the leading two elements and prepend them to the result of the
   ;; recursive call
   ([s init]
@@ -36,8 +37,8 @@
        (if (empty? s)
          init
          (let [[v1 v2 v3] (split-contents s m r1 r2 r3 msg)]
-           (cons new-v2 (cons new-v1 (split-expr-impl v3))))))))
-  (split-expr-impl s))
+           (cons v1 (cons v2 (split-expr-impl v3)))))))
+   (split-expr-impl s)))
 
 (defn conv-op [s]
   (cond
@@ -46,9 +47,18 @@
     (= s "multiplied by") *
     (= s "divided by") /))
 
-;; new-v1 (Integer/parseInt "1")
-;;                new-v2 (conv-op v2)
+(defn eval-exprs [exprs]
+  (defn eval-expr-impl [v1 exprs]
+    (if (empty? exprs)
+      v1
+      (let [op (conv-op (first exprs))
+            v2 (Integer/parseInt (second exprs))
+            result (op v1 v2)
+            remaining (rest (rest exprs))]
+        (eval-expr-impl result remaining))))
+  (eval-expr-impl (Integer/parseInt (first exprs)) (rest exprs)))
 
-(defn evaluate [] ;; <- arglist goes here
-      ;; your code goes here
-)
+(defn evaluate [s] ;; <- arglist goes here
+  (let [trimmed (remove-initial s)
+        exprs (split-exprs trimmed)]
+    (eval-exprs exprs)))
