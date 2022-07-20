@@ -8,6 +8,7 @@
 /haskell/*/.stack-work
 /haskell/*/stack.yaml.lock
 /haskell/*/*.cabal
+/haskell/*/HELP.md
 
 /ocaml/**/_build
 
