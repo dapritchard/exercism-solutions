@@ -1,19 +1,24 @@
 # exercise-specific metadata
 /*/*/.exercism
+/*/*/HELP.md
+/*/*/LICENSE
 /*/*/README.md
 /*/*/test_*
 /*/*/*-test.*
 
-/haskell/*/.exercism
 /haskell/*/.stack-work
 /haskell/*/stack.yaml.lock
 /haskell/*/*.cabal
-/haskell/*/HELP.md
 
 /ocaml/**/_build
 
 /clojure/*/.lein*
 /clojure/*/.nrepl*
-/clojure/*/HELP.md
 /clojure/*/HINTS.md
 /clojure/*/target
+
+/javascript/*/node_modules
+/javascript/*/.eslintrc
+/javascript/*/.npmrc
+/javascript/*/babel.config.js
+/javascript/*/package-lock.json

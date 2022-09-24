@@ -2,7 +2,6 @@
 
 module Bob (responseFor) where
 
--- import Text.Regex.TDFA
 import Data.Char ( isLower, isSpace, isUpper )
 
 responseFor :: String -> String
