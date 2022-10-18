@@ -17,8 +17,10 @@
 /clojure/*/HINTS.md
 /clojure/*/target
 
-/javascript/*/node_modules
+/javascript/*/.gitignore
+/javascript/*/HINTS.md
 /javascript/*/.eslintrc
 /javascript/*/.npmrc
 /javascript/*/babel.config.js
+/javascript/*/node_modules
 /javascript/*/package-lock.json
