@@ -8,12 +8,22 @@ fun quicksort ([]: char list): char list = []
     in quicksort left @ [x] @ quicksort right
     end
 
-fun quicksortString (s: string): string =
+fun quicksortString (s: string) =
     implode (quicksort (explode s))
 
-fun anagramsFor (subject: string) (candidates: string list): string list =
+(* TODO: include tuple in type definition *)
+fun makeNormPair (s: string) =
+    (implode (quicksort (map Char.toLower (explode s))), s)
+
+(* fun anagramsFor (subject: string) (candidates: string list): string list = *)
+fun anagramsFor (subject: string) (candidates: string list) =
     let val subjectSorted    = quicksortString subject
-        val candidatesSorted = map quicksortString candidates
-        fun checkEq s = subjectSorted = s
-    in  List.filter checkEq candidatesSorted
+        val candidatesSorted = map makeNormPair candidates
+        fun checkEq normed orig =
+            subjectSorted = normed andalso not (subject = orig)
+        fun filterPairs [] = []
+          | filterPairs ((normed, orig) :: ps) =
+            if checkEq normed orig then orig :: filterPairs ps
+            else filterPairs ps
+    in  filterPairs candidatesSorted
     end
