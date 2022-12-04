@@ -8,22 +8,30 @@ fun quicksort ([]: char list): char list = []
     in quicksort left @ [x] @ quicksort right
     end
 
-fun quicksortString (s: string) =
-    implode (quicksort (explode s))
+(* Create a sorted version of `s` after converting any uppercase letters to
+lowercase *)
+fun toSortedLowercase (s: string) =
+    implode (quicksort (map Char.toLower (explode s)))
 
-(* TODO: include tuple in type definition *)
-fun makeNormPair (s: string) =
-    (implode (quicksort (map Char.toLower (explode s))), s)
+(* Create a version of `s` where any uppercase letters have been converted to
+lowercase *)
+fun toLower (s: string) =
+    implode (map Char.toLower (explode s))
 
-(* fun anagramsFor (subject: string) (candidates: string list): string list = *)
-fun anagramsFor (subject: string) (candidates: string list) =
-    let val subjectSorted    = quicksortString subject
-        val candidatesSorted = map makeNormPair candidates
-        fun checkEq normed orig =
-            subjectSorted = normed andalso not (subject = orig)
+(* Create a tuple with a sorted + lowercase version of `s`, a lowercase version
+of `s`, and `s` itself *)
+fun makeNormVersions (s: string): string * string * string =
+    (toSortedLowercase s, toLower s, s)
+
+fun anagramsFor (subject: string) (candidates: string list): string list =
+    let val subjectSorted    = toSortedLowercase subject
+        val subjectLower     = toLower subject
+        val candidatesSorted = map makeNormVersions candidates
+        fun checkEq normed lower =
+            subjectSorted = normed andalso not (subjectLower = lower)
         fun filterPairs [] = []
-          | filterPairs ((normed, orig) :: ps) =
-            if checkEq normed orig then orig :: filterPairs ps
+          | filterPairs ((normed, lower, orig) :: ps) =
+            if checkEq normed lower then orig :: filterPairs ps
             else filterPairs ps
     in  filterPairs candidatesSorted
     end
